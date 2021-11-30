@@ -823,6 +823,18 @@ int av_frame_copy(AVFrame *dst, const AVFrame *src);
 int av_frame_copy_props(AVFrame *dst, const AVFrame *src);
 
 /**
+ * Copy only side-data from src to dst.
+ *
+ * @param dst a frame to which the side data should be copied.
+ * @param src a frame from which to copy the side data.
+ * @param force_copy determines whether to copy the actual data or only just
+ *        create references to the buffers.
+ *
+ * @return >= 0 on success, a negative AVERROR on error.
+ */
+int av_frame_copy_side_data(AVFrame* dst, const AVFrame* src, int force_copy);
+
+/**
  * Get the buffer reference a given data plane is stored in.
  *
  * @param plane index of the data plane of interest in frame->extended_data.
