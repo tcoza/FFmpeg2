@@ -539,7 +539,7 @@ static int display_end_segment(AVCodecContext *avctx, void *data,
             return AVERROR(ENOMEM);
         }
         sub->num_rects++;
-        sub->rects[i]->type = SUBTITLE_BITMAP;
+        sub->rects[i]->type = AV_SUBTITLE_FMT_BITMAP;
 
         /* Process bitmap */
         object = find_object(ctx->presentation.objects[i].id, &ctx->objects);
