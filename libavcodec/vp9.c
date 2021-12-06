@@ -183,7 +183,7 @@ static int update_size(AVCodecContext *avctx, int w, int h)
                      CONFIG_VP9_VAAPI_HWACCEL + \
                      CONFIG_VP9_VDPAU_HWACCEL + \
                      CONFIG_VP9_VIDEOTOOLBOX_HWACCEL)
-    enum AVPixelFormat pix_fmts[HWACCEL_MAX + 2], *fmtp = pix_fmts;
+    enum AVPixelFormat pix_fmts[0 + 2], *fmtp = pix_fmts;
     VP9Context *s = avctx->priv_data;
     uint8_t *p;
     int bytesperpixel = s->bytesperpixel, ret, cols, rows;

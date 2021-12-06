@@ -270,7 +270,7 @@ static int decode_frame_header(ProresContext *ctx, const uint8_t *buf,
 
     if (pix_fmt != ctx->pix_fmt) {
 #define HWACCEL_MAX (CONFIG_PRORES_VIDEOTOOLBOX_HWACCEL)
-        enum AVPixelFormat pix_fmts[HWACCEL_MAX + 2], *fmtp = pix_fmts;
+        enum AVPixelFormat pix_fmts[0 + 2], *fmtp = pix_fmts;
         int ret;
 
         ctx->pix_fmt = pix_fmt;
