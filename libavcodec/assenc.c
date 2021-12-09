@@ -22,48 +22,92 @@
 #include <string.h>
 
 #include "avcodec.h"
+#include "encode.h"
 #include "libavutil/ass_internal.h"
 #include "internal.h"
 #include "libavutil/avstring.h"
 #include "libavutil/internal.h"
 #include "libavutil/mem.h"
 
+static void check_write_header(AVCodecContext* avctx, const AVFrame* frame)
+{
+    if (avctx->extradata_size)
+        return;
+
+    if (frame->subtitle_header && frame->subtitle_header->size > 0) {
+        const char* subtitle_header = (char*)frame->subtitle_header->data;
+        avctx->extradata_size = strlen(subtitle_header);
+        avctx->extradata = av_mallocz(frame->subtitle_header->size + 1);
+        memcpy(avctx->extradata, subtitle_header, avctx->extradata_size);
+        avctx->extradata[avctx->extradata_size] = 0;
+    }
+
+    if (!avctx->extradata_size) {
+        const char* subtitle_header = avpriv_ass_get_subtitle_header_default(0);
+        if (!subtitle_header)
+            return;
+
+        avctx->extradata_size = strlen(subtitle_header);
+        avctx->extradata = av_mallocz(avctx->extradata_size + 1);
+        memcpy(avctx->extradata, subtitle_header, avctx->extradata_size);
+        avctx->extradata[avctx->extradata_size] = 0;
+        av_freep(&subtitle_header);
+    }
+}
+
 static av_cold int ass_encode_init(AVCodecContext *avctx)
 {
-    avctx->extradata = av_malloc(avctx->subtitle_header_size + 1);
-    if (!avctx->extradata)
-        return AVERROR(ENOMEM);
-    memcpy(avctx->extradata, avctx->subtitle_header, avctx->subtitle_header_size);
-    avctx->extradata_size = avctx->subtitle_header_size;
-    avctx->extradata[avctx->extradata_size] = 0;
+    if (avctx->subtitle_header_size) {
+        avctx->extradata = av_malloc(avctx->subtitle_header_size + 1);
+        if (!avctx->extradata)
+            return AVERROR(ENOMEM);
+        memcpy(avctx->extradata, avctx->subtitle_header, avctx->subtitle_header_size);
+        avctx->extradata_size                   = avctx->subtitle_header_size;
+        avctx->extradata[avctx->extradata_size] = 0;
+    }
+
     return 0;
 }
 
-static int ass_encode_frame(AVCodecContext *avctx,
-                            unsigned char *buf, int bufsize,
-                            const AVSubtitle *sub)
+static int ass_encode_frame(AVCodecContext* avctx, AVPacket* avpkt,
+                            const AVFrame* frame, int* got_packet)
 {
-    int i, len, total_len = 0;
+    int ret;
+    size_t req_len = 0, total_len = 0;
 
-    for (i=0; i<sub->num_rects; i++) {
-        const char *ass = sub->rects[i]->ass;
+    check_write_header(avctx, frame);
 
-        if (sub->rects[i]->type != SUBTITLE_ASS) {
-            av_log(avctx, AV_LOG_ERROR, "Only SUBTITLE_ASS type supported.\n");
+    for (unsigned i = 0; i < frame->num_subtitle_areas; i++) {
+        const char *ass = frame->subtitle_areas[i]->ass;
+
+        if (frame->subtitle_areas[i]->type != AV_SUBTITLE_FMT_ASS) {
+            av_log(avctx, AV_LOG_ERROR, "Only AV_SUBTITLE_FMT_ASS type supported.\n");
             return AVERROR(EINVAL);
         }
 
-        len = av_strlcpy(buf+total_len, ass, bufsize-total_len);
-
-        if (len > bufsize-total_len-1) {
-            av_log(avctx, AV_LOG_ERROR, "Buffer too small for ASS event.\n");
-            return AVERROR_BUFFER_TOO_SMALL;
-        }
-
-        total_len += len;
+        if (ass)
+            req_len += strlen(ass);
     }
 
-    return total_len;
+    ret = ff_get_encode_buffer(avctx, avpkt, req_len + 1, 0);
+    if (ret < 0) {
+        av_log(avctx, AV_LOG_ERROR, "Error getting output packet.\n");
+        return ret;
+    }
+
+    for (unsigned i = 0; i < frame->num_subtitle_areas; i++) {
+        const char *ass = frame->subtitle_areas[i]->ass;
+
+        if (ass) {
+            size_t len = av_strlcpy((char *)avpkt->data + total_len, ass, avpkt->size - total_len);
+            total_len += len;
+        }
+    }
+
+    avpkt->size = total_len;
+    *got_packet = total_len > 0;
+
+    return 0;
 }
 
 #if CONFIG_SSA_ENCODER
@@ -73,7 +117,7 @@ const AVCodec ff_ssa_encoder = {
     .type         = AVMEDIA_TYPE_SUBTITLE,
     .id           = AV_CODEC_ID_ASS,
     .init         = ass_encode_init,
-    .encode_sub   = ass_encode_frame,
+    .encode2      = ass_encode_frame,
     .caps_internal  = FF_CODEC_CAP_INIT_THREADSAFE,
 };
 #endif
@@ -85,7 +129,7 @@ const AVCodec ff_ass_encoder = {
     .type         = AVMEDIA_TYPE_SUBTITLE,
     .id           = AV_CODEC_ID_ASS,
     .init         = ass_encode_init,
-    .encode_sub   = ass_encode_frame,
+    .encode2      = ass_encode_frame,
     .caps_internal  = FF_CODEC_CAP_INIT_THREADSAFE,
 };
 #endif
