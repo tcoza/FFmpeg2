@@ -599,6 +599,8 @@ static int decode_subtitle_shim(AVCodecContext *avctx, AVFrame *frame, AVPacket 
         if (ret >= 0)
             ret = ff_frame_put_subtitle(frame, &subtitle);
 
+        frame->width = avctx->width;
+        frame->height = avctx->height;
         frame->pkt_dts = avpkt->dts;
     }
 
