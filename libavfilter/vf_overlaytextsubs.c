@@ -115,19 +115,16 @@ static int overlay_textsubs_query_formats(AVFilterContext *ctx)
     static const enum AVSubtitleType subtitle_fmts[] = { AV_SUBTITLE_FMT_ASS, AV_SUBTITLE_FMT_NONE };
     int ret;
 
-    /* set input0 video formats */
+    /* set input0 and output0 video formats */
     formats = ff_draw_supported_pixel_formats(0);
     if ((ret = ff_formats_ref(formats, &inlink0->outcfg.formats)) < 0)
+        return ret;
+    if ((ret = ff_formats_ref(formats, &outlink->incfg.formats)) < 0)
         return ret;
 
     /* set input1 subtitle formats */
     formats = ff_make_format_list(subtitle_fmts);
     if ((ret = ff_formats_ref(formats, &inlink1->outcfg.formats)) < 0)
-        return ret;
-
-    /* set output0 video formats */
-    formats = ff_draw_supported_pixel_formats(0);
-    if ((ret = ff_formats_ref(formats, &outlink->incfg.formats)) < 0)
         return ret;
 
     return 0;
