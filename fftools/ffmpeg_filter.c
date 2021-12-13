@@ -290,6 +290,10 @@ static void init_input_filter(FilterGraph *fg, AVFilterInOut *in)
         const AVCodecDescriptor *codec_descriptor = ist->dec_ctx->codec_descriptor;
         if (!codec_descriptor)
             codec_descriptor = avcodec_descriptor_get(ist->dec_ctx->codec_id);
+
+        // For subtitles, we need to set the format here. Would we leave the format
+        // at -1, it would delay processing (ifilter_has_all_input_formats()) until
+        // the first subtile frame arrives, which could never happen in the worst case
         fg->inputs[fg->nb_inputs - 1]->format = avcodec_descriptor_get_subtitle_format(codec_descriptor);
     }
 
@@ -772,6 +776,21 @@ static int configure_input_subtitle_filter(FilterGraph *fg, InputFilter *ifilter
 
     media_type = avfilter_pad_get_type(in->filter_ctx->input_pads, in->pad_idx);
     if (media_type == AVMEDIA_TYPE_VIDEO) {
+        // If the subtitle frame size is unknown, try to find a video input
+        // and use its size for adding a subscale filter
+        for (int i = 0; i < fg->nb_inputs; i++) {
+            InputFilter *input = fg->inputs[i];
+            if (input->type == AVMEDIA_TYPE_VIDEO && input->width && input->height) {
+                char subscale_params[64];
+                snprintf(subscale_params, sizeof(subscale_params), "w=%d:h=%d", input->width, input->height);
+                ret = insert_filter(&last_filter, &pad_idx, "subscale", subscale_params);
+                if (ret < 0)
+                    return ret;
+                break;
+            }
+        }
+
+        // This is for sub2video compatibility
         av_log(NULL, AV_LOG_INFO, "Auto-inserting graphicsub2video filter\n");
         ret = insert_filter(&last_filter, &pad_idx, "graphicsub2video", NULL);
         if (ret < 0)
