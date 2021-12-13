@@ -2045,8 +2045,12 @@ static int ifilter_send_frame(InputFilter *ifilter, AVFrame *frame, int keep_ref
                        ifilter->channel_layout != frame->channel_layout;
         break;
     case AVMEDIA_TYPE_VIDEO:
+    case AVMEDIA_TYPE_SUBTITLE:
         need_reinit |= ifilter->width  != frame->width ||
                        ifilter->height != frame->height;
+
+        if (need_reinit)
+            need_reinit = 1;
         break;
     }
 
