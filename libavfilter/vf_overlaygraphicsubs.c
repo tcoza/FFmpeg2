@@ -584,6 +584,11 @@ static int graphicsub2video_config_output(AVFilterLink *outlink)
 
     outlink->w = s->w;
     outlink->h = s->h;
+
+    if (outlink->w == 0 && outlink->h == 0) {
+        outlink->w = 1;
+        outlink->h = 1;
+    }
     outlink->sample_aspect_ratio = (AVRational){1,1};
     outlink->time_base = ctx->inputs[0]->time_base;
 
