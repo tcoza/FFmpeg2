@@ -66,6 +66,9 @@ typedef struct DVBSubObjectDisplay {
     struct DVBSubObjectDisplay *object_list_next;
 } DVBSubObjectDisplay;
 
+
+// Here's a little change for testing patchset versions
+
 typedef struct DVBSubObject {
     int id;
     int version;
