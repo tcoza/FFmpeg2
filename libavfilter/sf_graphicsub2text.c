@@ -120,12 +120,15 @@ static int config_input(AVFilterLink *inlink)
 
 static int config_output(AVFilterLink *outlink)
 {
+    AVFilterLink *inlink = outlink->src->inputs[0];
     const AVFilterContext *ctx  = outlink->src;
     SubOcrContext *s = ctx->priv;
 
     outlink->format = AV_SUBTITLE_FMT_ASS;
     outlink->w = s->w;
     outlink->h = s->h;
+    outlink->time_base = inlink->time_base;
+    outlink->frame_rate = inlink->frame_rate;
 
     return 0;
 }
