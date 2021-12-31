@@ -122,6 +122,18 @@ static char *process_dialog(StripStylesContext *s, const char *ass_line)
     return result;
 }
 
+static int config_output(AVFilterLink *outlink)
+{
+    AVFilterLink *inlink = outlink->src->inputs[0];
+
+    outlink->w = inlink->w;
+    outlink->h = inlink->h;
+    outlink->time_base = inlink->time_base;
+    outlink->frame_rate = inlink->frame_rate;
+
+    return 0;
+}
+
 static int filter_frame(AVFilterLink *inlink, AVFrame *frame)
 {
     StripStylesContext *s = inlink->dst->priv;
@@ -181,6 +193,7 @@ static const AVFilterPad outputs[] = {
     {
         .name          = "default",
         .type          = AVMEDIA_TYPE_SUBTITLE,
+        .config_props  = config_output,
     },
 };
 
