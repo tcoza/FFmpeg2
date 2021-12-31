@@ -949,6 +949,12 @@ static void do_subtitle_out(OutputFile *of, OutputStream *ost, AVFrame *frame)
         return;
     }
 
+    if (ost->last_subtitle_pts && ost->last_subtitle_pts == frame->subtitle_pts) {
+        av_log(NULL, AV_LOG_DEBUG, "Ignoring subtitle frame with duplicate subtitle_pts\n");
+        return;
+    }
+
+    ost->last_subtitle_pts = frame->subtitle_pts;
     enc = ost->enc_ctx;
 
     /* Note: DVB subtitle need one packet to draw them and one other

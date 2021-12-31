@@ -465,6 +465,8 @@ typedef struct OutputStream {
     int64_t first_pts;
     /* dts of the last packet sent to the muxer */
     int64_t last_mux_dts;
+    /* subtitle_pts values of the last subtitle frame having arrived for encoding */
+    int64_t last_subtitle_pts;
     // the timebase of the packets sent to the muxer
     AVRational mux_timebase;
     AVRational enc_timebase;
