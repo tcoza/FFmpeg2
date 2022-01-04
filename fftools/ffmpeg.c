@@ -954,6 +954,8 @@ static void do_subtitle_out(OutputFile *of, OutputStream *ost, AVFrame *frame)
         return;
     }
 
+    init_output_stream_wrapper(ost, frame, 1);
+
     ost->last_subtitle_pts = frame->subtitle_pts;
     enc = ost->enc_ctx;
 
@@ -3663,7 +3665,8 @@ static int transcode_init(void)
     for (i = 0; i < nb_output_streams; i++) {
         if (!output_streams[i]->stream_copy &&
             (output_streams[i]->enc_ctx->codec_type == AVMEDIA_TYPE_VIDEO ||
-             output_streams[i]->enc_ctx->codec_type == AVMEDIA_TYPE_AUDIO))
+             output_streams[i]->enc_ctx->codec_type == AVMEDIA_TYPE_AUDIO ||
+             output_streams[i]->enc_ctx->codec_type == AVMEDIA_TYPE_SUBTITLE))
             continue;
 
         ret = init_output_stream_wrapper(output_streams[i], NULL, 0);
