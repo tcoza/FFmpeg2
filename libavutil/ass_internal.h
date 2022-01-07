@@ -112,6 +112,14 @@ char *avpriv_ass_get_dialog(int readorder, int layer, const char *style,
                         const char *speaker, const char *text);
 
 
+/**
+ * Craft an ASS dialog string.
+ */
+char *avpriv_ass_get_dialog_ex(int readorder, int layer, const char *style,
+                        const char *speaker, int margin_l, int margin_r,
+                        int margin_v, const char *text);
+
+
 /////**
 //// * Helper to flush a text subtitles decoder making use of the
 //// * FFASSDecoderContext.

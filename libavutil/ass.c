@@ -113,6 +113,16 @@ char *avpriv_ass_get_dialog(int readorder, int layer, const char *style,
                        speaker ? speaker : "", text);
 }
 
+char *avpriv_ass_get_dialog_ex(int readorder, int layer, const char *style,
+                        const char *speaker, int margin_l, int margin_r,
+                        int margin_v, const char *text)
+{
+    return av_asprintf("%d,%d,%s,%s,%d,%d,%d,,%s",
+                       readorder, layer, style ? style : "Default",
+                       speaker ? speaker : "", margin_l, margin_r,
+                       margin_v, text);
+}
+
 void avpriv_ass_bprint_text_event(AVBPrint *buf, const char *p, int size,
                              const char *linebreaks, int keep_ass_markup)
 {
