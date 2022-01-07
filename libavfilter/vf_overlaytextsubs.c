@@ -272,24 +272,31 @@ static int filter_subtitle_frame(AVFilterLink *inlink, AVFrame *sub)
     if (!s->got_header && sub->num_subtitle_areas > 0)
         process_header(ctx, sub);
 
+    ff_mutex_lock(&s->mutex);
+
+    if (s->render_latest_only && s->track->n_events > 0) {
+        const int64_t previous_start_time = s->track->events[s->track->n_events - 1].Start;
+        const int64_t diff = start_time - previous_start_time;
+        for (int i = s->track->n_events - 1; i >= 0; i--) {
+            if (previous_start_time != s->track->events[i].Start)
+                break;
+
+            if (s->track->events[i].Duration > diff)
+                s->track->events[i].Duration = diff;
+
+        }
+    }
+
     for (unsigned i = 0; i < sub->num_subtitle_areas; i++) {
         char *ass_line = sub->subtitle_areas[i]->ass;
         if (!ass_line)
-            break;
+            continue;
 
-        ff_mutex_lock(&s->mutex);
         ass_process_chunk(s->track, ass_line, strlen(ass_line), start_time, duration);
-
-        if (s->render_latest_only && s->track->n_events > 1) {
-            const int64_t diff = s->track->events[s->track->n_events - 1].Start
-                               - s->track->events[s->track->n_events - 2].Start;
-            if (s->track->events[s->track->n_events - 2].Duration > diff)
-                s->track->events[s->track->n_events - 2].Duration = diff;
-        }
-
-        ff_mutex_unlock(&s->mutex);
     }
 
+
+    ff_mutex_unlock(&s->mutex);
     av_frame_free(&sub);
     return 0;
 }
@@ -505,23 +512,31 @@ static int textsub2video_filter_frame(AVFilterLink *inlink, AVFrame *sub)
     if (!s->got_header && sub->num_subtitle_areas > 0)
         process_header(ctx, sub);
 
+    ff_mutex_lock(&s->mutex);
+
+    if (s->render_latest_only && s->track->n_events > 0) {
+        const int64_t previous_start_time = s->track->events[s->track->n_events - 1].Start;
+        const int64_t diff = start_time - previous_start_time;
+        for (int i = s->track->n_events - 1; i >= 0; i--) {
+            if (previous_start_time != s->track->events[i].Start)
+                break;
+
+            if (s->track->events[i].Duration > diff)
+                s->track->events[i].Duration = diff;
+
+        }
+    }
+
     for (unsigned i = 0; i < sub->num_subtitle_areas; i++) {
         char *ass_line = sub->subtitle_areas[i]->ass;
         if (!ass_line)
-            break;
+            continue;
 
-        ff_mutex_lock(&s->mutex);
         ass_process_chunk(s->track, ass_line, strlen(ass_line), start_time, duration);
-
-        if (s->render_latest_only && s->track->n_events > 1) {
-            const int64_t diff = s->track->events[s->track->n_events - 1].Start
-                               - s->track->events[s->track->n_events - 2].Start;
-            if (s->track->events[s->track->n_events - 2].Duration > diff)
-                s->track->events[s->track->n_events - 2].Duration = diff;
-        }
-
-        ff_mutex_unlock(&s->mutex);
     }
+
+
+    ff_mutex_unlock(&s->mutex);
 
     av_frame_free(&sub);
 
