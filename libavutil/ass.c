@@ -62,7 +62,7 @@ char* avpriv_ass_get_subtitle_header_full(int play_res_x, int play_res_y,
              "%d,%d,%d,0,"          /* Bold, Italic, Underline, StrikeOut */
              "100,100,"             /* Scale{X,Y} */
              "0,0,"                 /* Spacing, Angle */
-             "%d,1,0,"              /* BorderStyle, Outline, Shadow */
+             "%d,2,0,"              /* BorderStyle, Outline, Shadow */
              "%d,10,10,10,"         /* Alignment, Margin[LRV] */
              "0\r\n"                /* Encoding */
 
