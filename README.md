@@ -41,6 +41,20 @@ GPL. Please refer to the LICENSE file for detailed information.
 
 ## Contributing
 
+### Mailing List
+
 Patches should be submitted to the ffmpeg-devel mailing list using
-`git format-patch` or `git send-email`. Github pull requests should be
-avoided because they are not part of our review process and will be ignored.
+`git format-patch` or `git send-email` as described in the 
+[Developer Documentation](https://www.ffmpeg.org/developer.html#Contributing).
+
+### Pull Requests
+
+There is a new experimental way that allows submitting Pull Requests
+and having them forwarded to the ffmpeg Mailing List.
+
+Please submit your Pull Requests here: **https://github.com/ffstaging/FFmpeg**.
+
+Then, follow the instructions from the automatic CodeBot response.
+Besides the submission procedure, the
+[Developer Documentation](https://www.ffmpeg.org/developer.html#Contributing)
+applies in the same way like when submitting to the ML directly.
