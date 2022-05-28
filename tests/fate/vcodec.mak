@@ -264,7 +264,9 @@ fate-vsynth%-mpeg2-422:          ENCOPTS = -b:v 1000k                   \
                                            -mpv_flags +qp_rd+mv0        \
                                            -intra_vlc 1                 \
                                            -mbd rd                      \
-                                           -pix_fmt yuv422p
+                                           -pix_fmt yuv422p             \
+										   $(if $(HAVE_MMX), -cpuflags -avx512 )
+										   
 fate-vsynth%-mpeg2-idct-int:     ENCOPTS = -qscale 10 -idct int -dct int
 fate-vsynth%-mpeg2-ilace:        ENCOPTS = -qscale 10 -flags +ildct+ilme
 fate-vsynth%-mpeg2-ivlc-qprd:    ENCOPTS = -b:v 500k                    \
